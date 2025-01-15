@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>韩班网</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #1a1a1a;
+            font-family: 'Arial Black', sans-serif;
+            overflow: hidden;
+            transition: background-color 1s ease; /* 背景颜色过渡效果 */
+        }
+
+        /* 欢迎文字动画 */
+        .welcome-text {
+            font-size: 4rem;
+            color: #fff;
+            opacity: 0;
+            transform: scale(0.8);
+            animation: fadeInAndScale 2.5s ease-in-out forwards;
+            text-shadow: 
+                2px 2px 4px rgba(0, 0, 0, 0.5), 
+                4px 4px 6px rgba(0, 0, 0, 0.4);
+        }
+
+        @keyframes fadeInAndScale {
+            0% {
+                opacity: 0;
+                transform: scale(0.8) translateY(-20px);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.1) translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(1.2) translateY(20px);
+            }
+        }
+
+        /* 密码验证容器 */
+        .password-container, .initial-container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            display: none; /* 初始隐藏 */
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0; /* 初始透明度为0 */
+            animation: fadeIn 1.5s ease-in-out forwards; /* 动画结束后保持最终状态 */
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .password-container h1, .initial-container h1 {
+            color: #fff;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .password-container input, .initial-container input {
+            width: 80%;
+            padding: 0.8rem;
+            margin-bottom: 1rem;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            outline: none;
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            text-align: center;
+            transition: background 0.3s ease;
+        }
+
+        .password-container input::placeholder, .initial-container input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .password-container input:focus, .initial-container input:focus {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .password-container button, .initial-container button {
+            padding: 0.8rem 2rem;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            background: linear-gradient(45deg, #ff6f61, #ffcc00);
+            color: #fff;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 111, 97, 0.4);
+        }
+
+        .password-container button:hover, .initial-container button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(255, 111, 97, 0.6);
+        }
+
+        /* 错误提示 */
+        .error-message {
+            color: #ff6f61;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        /* 提示信息 */
+        .success-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            text-align: center;
+            display: none;
+            opacity: 0; /* 初始透明度为0 */
+            animation: fadeIn 1.5s ease-in-out forwards; /* 动画结束后保持最终状态 */
+        }
+
+        .success-message h2 {
+            font-size: 2rem;
+            color: #fff;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .success-message p {
+            font-size: 1.2rem;
+            color: #fff;
+            margin: 0;
+        }
+
+        /* 春节倒计时模块 */
+        .countdown-module {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: none; /* 初始隐藏 */
+        }
+
+        .countdown-module:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(255, 111, 97, 0.6);
+        }
+
+        .countdown-module h2 {
+            font-size: 1.5rem;
+            color: #fff;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        /* 倒计时内容 */
+        .countdown-content {
+            display: none;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            max-width: 600px;
+            opacity: 0; /* 初始透明度为0 */
+            animation: fadeIn 1.5s ease-in-out forwards; /* 动画结束后保持最终状态 */
+        }
+
+        .countdown-content h1 {
+            font-size: 2.5rem;
+            color: #fff;
+            margin-bottom: 1.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .countdown-timer {
+            font-size: 3rem;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            animation: pulse 1.5s infinite alternate; /* 脉冲动画 */
+        }
+
+        .countdown-timer span {
+            display: inline-block;
+            margin: 0 0.5rem;
+        }
+
+        /* 返回首页按钮 */
+        .back-button {
+            margin-top: 1.5rem;
+            padding: 0.8rem 2rem;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            background: linear-gradient(45deg, #ff6f61, #ffcc00);
+            color: #fff;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 111, 97, 0.4);
+        }
+
+        .back-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(255, 111, 97, 0.6);
+        }
+
+        /* 春节快乐提示 */
+        .new-year-message {
+            display: none;
+            font-size: 4rem;
+            color: #ffcc00;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            animation: zoomIn 1s ease-in-out forwards;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* 动画 */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes pulse {
+            from {
+                transform: scale(1);
+            }
+            to {
+                transform: scale(1.1);
+            }
+        }
+
+        @keyframes zoomIn {
+            from {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 欢迎文字动画 -->
+    <div class="welcome-text">欢迎来到韩班网</div>
+
+    <!-- 密码验证部分 -->
+    <div class="password-container" id="password-container">
+        <h1>请输入密码</h1>
+        <input type="password" id="password" placeholder="请输入密码" />
+        <button onclick="checkPassword()">解锁</button>
+        <div id="password-error" class="error-message">密码错误，请重试！</div>
+    </div>
+
+    <!-- 首字母验证部分 -->
+    <div class="initial-container" id="initial-container">
+        <h1>请输入名字首字母</h1>
+        <input type="text" id="initial" placeholder="请输入名字首字母" maxlength="3" />
+        <button onclick="checkInitial()">提交</button>
+        <div id="initial-error" class="error-message">首字母无效，请重试！</div>
+    </div>
+
+    <!-- 提示信息 -->
+    <div class="success-message" id="password-success">
+        <h2>密码正确！</h2>
+    </div>
+    <div class="success-message" id="initial-success">
+        <h2>已确认您是韩班人员</h2>
+        <p>欢迎进入韩班网！</p>
+    </div>
+
+    <!-- 春节倒计时模块 -->
+    <div class="countdown-module" id="countdown-module">
+        <h2>春节倒计时</h2>
+    </div>
+
+    <!-- 倒计时内容 -->
+    <div class="countdown-content" id="countdown-content">
+        <h1>春节倒计时</h1>
+        <div class="countdown-timer" id="countdown-timer">
+            <span id="days">00</span>天
+            <span id="hours">00</span>时
+            <span id="minutes">00</span>分
+            <span id="seconds">00</span>秒
+        </div>
+        <button class="back-button" onclick="backToHome()">返回首页</button>
+    </div>
+
+    <!-- 春节快乐提示 -->
+    <div class="new-year-message" id="new-year-message">春节快乐！</div>
+
+    <script>
+        // 允许的首字母列表
+        const allowedInitials = [
+            "LMT", "WQR", "HZH", "JYH", "JFS",
+            "HRJ", "FYY", "CHL", "ZWH", "YKR",
+            "CHL", "YHY", "LWD", "SCY", "SYF",
+            "ZFR", "YYB"
+        ];
+
+        // 存储验证状态和日期
+        function setVerificationStatus() {
+            const today = new Date().toLocaleDateString(); // 获取当前日期（格式为 YYYY/MM/DD）
+            localStorage.setItem('verified', 'true');
+            localStorage.setItem('verificationDate', today);
+        }
+
+        // 检查是否需要重新验证
+        function checkVerificationStatus() {
+            const verified = localStorage.getItem('verified');
+            const verificationDate = localStorage.getItem('verificationDate');
+            const today = new Date().toLocaleDateString();
+
+            if (verified === 'true' && verificationDate === today) {
+                // 如果当天已经验证过，跳过验证
+                document.getElementById('password-container').style.display = 'none';
+                document.getElementById('initial-container').style.display = 'none';
+                document.getElementById('countdown-module').style.display = 'block';
+            } else {
+                // 如果未验证或跨天了，清除状态并显示验证界面
+                localStorage.removeItem('verified');
+                localStorage.removeItem('verificationDate');
+                document.getElementById('password-container').style.display = 'block';
+            }
+        }
+
+        // 在页面加载时检查验证状态
+        window.onload = function () {
+            const welcomeText = document.querySelector('.welcome-text');
+            welcomeText.addEventListener('animationend', () => {
+                checkVerificationStatus(); // 动画结束后检查验证状态
+            });
+        };
+
+        // 密码验证逻辑
+        function checkPassword() {
+            const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('password-error');
+            const successMessage = document.getElementById('password-success');
+            const passwordContainer = document.getElementById('password-container'); // 确保获取到密码容器
+
+            if (password === 'HAN12') {
+                successMessage.style.display = 'block'; // 显示密码正确的提示
+                setTimeout(() => {
+                    successMessage.style.display = 'none'; // 隐藏提示
+                    passwordContainer.style.display = 'none'; // 隐藏密码验证容器
+                    document.getElementById('initial-container').style.display = 'block'; // 显示首字母验证容器
+                }, 2000); // 2秒后执行
+            } else {
+                errorMessage.style.display = 'block'; // 显示密码错误的提示
+                setTimeout(() => {
+                    errorMessage.style.display = 'none'; // 2秒后隐藏错误提示
+                }, 2000);
+            }
+        }
+
+        // 首字母验证逻辑
+        function checkInitial() {
+            const initial = document.getElementById('initial').value.toUpperCase();
+            const errorMessage = document.getElementById('initial-error');
+            const successMessage = document.getElementById('initial-success');
+
+            if (allowedInitials.includes(initial)) {
+                successMessage.style.display = 'block';
+                setTimeout(() => {
+                    successMessage.style.display = 'none';
+                    document.getElementById('initial-container').style.display = 'none';
+                    document.getElementById('countdown-module').style.display = 'block';
+                    setVerificationStatus(); // 存储验证状态和日期
+                }, 2000);
+            } else {
+                errorMessage.style.display = 'block';
+                setTimeout(() => {
+                    errorMessage.style.display = 'none';
+                }, 2000);
+            }
+        }
+
+        // 点击春节倒计时模块显示倒计时内容
+        const countdownModule = document.getElementById('countdown-module');
+        const countdownContent = document.getElementById('countdown-content');
+
+        countdownModule.addEventListener('click', () => {
+            countdownModule.style.display = 'none';
+            countdownContent.style.display = 'block';
+            startCountdown();
+        });
+
+        // 返回首页逻辑
+        function backToHome() {
+            countdownContent.style.display = 'none';
+            countdownModule.style.display = 'block';
+        }
+
+        // 春节倒计时逻辑
+        function startCountdown() {
+            const springFestivalDate = new Date('2025-01-29T00:00:00');
+            const daysElement = document.getElementById('days');
+            const hoursElement = document.getElementById('hours');
+            const minutesElement = document.getElementById('minutes');
+            const secondsElement = document.getElementById('seconds');
+            const newYearMessage = document.getElementById('new-year-message');
+
+            function updateCountdown() {
+                const now = new Date();
+                const timeDifference = springFestivalDate - now;
+
+                if (timeDifference <= 0) {
+                    clearInterval(countdownInterval);
+                    countdownContent.style.display = 'none';
+                    newYearMessage.style.display = 'block';
+                    document.body.style.backgroundColor = '#ff0000';
+                    document.body.style.backgroundImage = 'linear-gradient(to bottom, #ff0000, #ffcc00)';
+                    return;
+                }
+
+                const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
+
+                daysElement.textContent = String(days).padStart(2, '0');
+                hoursElement.textContent = String(hours).padStart(2, '0');
+                minutesElement.textContent = String(minutes).padStart(2, '0');
+                secondsElement.textContent = String(seconds).padStart(2, '0');
+            }
+
+            const countdownInterval = setInterval(updateCountdown, 1000);
+            updateCountdown();
+        }
+    </script>
+</body>
+</html>
