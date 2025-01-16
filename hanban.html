@@ -5,17 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>韩班网</title>
     <style>
+        /* 全局样式 */
         body {
             margin: 0;
             padding: 0;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            height: 100vh;
+            justify-content: center;
+            min-height: 100vh;
             background-color: #1a1a1a;
             font-family: 'Arial Black', sans-serif;
             overflow: hidden;
-            transition: background-color 1s ease; /* 背景颜色过渡效果 */
+            transition: background-color 1s ease;
         }
 
         /* 欢迎文字动画 */
@@ -28,38 +30,58 @@
             text-shadow: 
                 2px 2px 4px rgba(0, 0, 0, 0.5), 
                 4px 4px 6px rgba(0, 0, 0, 0.4);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.8);
         }
 
         @keyframes fadeInAndScale {
             0% {
                 opacity: 0;
-                transform: scale(0.8) translateY(-20px);
+                transform: translate(-50%, -50%) scale(0.8);
             }
             50% {
                 opacity: 1;
-                transform: scale(1.1) translateY(0);
+                transform: translate(-50%, -50%) scale(1.1);
             }
             100% {
-                opacity: 0;
-                transform: scale(1.2) translateY(20px);
+                opacity: 0; /* 动画结束后消失 */
+                transform: translate(-50%, -50%) scale(1.2);
             }
         }
 
-        /* 密码验证容器 */
-        .password-container, .initial-container {
-            text-align: center;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 2rem;
-            border-radius: 15px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
-            display: none; /* 初始隐藏 */
+        /* 页眉样式 */
+        .header {
             position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            opacity: 0; /* 初始透明度为0 */
-            animation: fadeIn 1.5s ease-in-out forwards; /* 动画结束后保持最终状态 */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 80px;
+            background: linear-gradient(45deg, #ff6f61, #ffcc00);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(255, 111, 97, 0.4);
+            z-index: 1000;
+            animation: slideDown 1s ease-in-out;
+            display: none;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 2s ease-in-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+            }
+            to {
+                transform: translateY(0);
+            }
         }
 
         @keyframes fadeIn {
@@ -69,6 +91,70 @@
             to {
                 opacity: 1;
             }
+        }
+
+        /* 侧边栏样式 */
+        .sidebar {
+            position: fixed;
+            top: 100px;
+            left: 20px;
+            width: 200px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            z-index: 999;
+            display: none;
+        }
+
+        .countdown-module, .news-module {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-align: center;
+        }
+
+        .countdown-module:hover, .news-module:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(255, 111, 97, 0.6);
+        }
+
+        .countdown-module h2, .news-module h2 {
+            font-size: 1.5rem;
+            color: #fff;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        /* 正文部分样式 */
+        .main-content {
+            margin-top: 120px;
+            margin-left: 240px;
+            width: calc(100% - 260px);
+            padding: 20px;
+            display: none;
+            opacity: 0;
+            animation: fadeIn 1s ease-in-out forwards;
+        }
+
+        /* 密码验证部分 */
+        .password-container, .initial-container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            animation: fadeIn 1.5s ease-in-out forwards;
         }
 
         .password-container h1, .initial-container h1 {
@@ -117,7 +203,6 @@
             box-shadow: 0 6px 20px rgba(255, 111, 97, 0.6);
         }
 
-        /* 错误提示 */
         .error-message {
             color: #ff6f61;
             margin-top: 1rem;
@@ -125,7 +210,6 @@
             display: none;
         }
 
-        /* 提示信息 */
         .success-message {
             position: fixed;
             top: 50%;
@@ -138,8 +222,8 @@
             backdrop-filter: blur(10px);
             text-align: center;
             display: none;
-            opacity: 0; /* 初始透明度为0 */
-            animation: fadeIn 1.5s ease-in-out forwards; /* 动画结束后保持最终状态 */
+            opacity: 0;
+            animation: fadeIn 1.5s ease-in-out forwards;
         }
 
         .success-message h2 {
@@ -155,50 +239,17 @@
             margin: 0;
         }
 
-        /* 春节倒计时模块 */
-        .countdown-module {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 1rem;
-            border-radius: 15px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
-            cursor: pointer;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            display: none; /* 初始隐藏 */
-        }
-
-        .countdown-module:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 20px rgba(255, 111, 97, 0.6);
-        }
-
-        .countdown-module h2 {
-            font-size: 1.5rem;
-            color: #fff;
-            margin: 0;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-        }
-
-        /* 倒计时内容 */
+        /* 倒计时内容样式 */
         .countdown-content {
-            display: none;
             text-align: center;
             background: rgba(255, 255, 255, 0.1);
             padding: 2rem;
             border-radius: 15px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             backdrop-filter: blur(10px);
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 80%;
-            max-width: 600px;
-            opacity: 0; /* 初始透明度为0 */
-            animation: fadeIn 1.5s ease-in-out forwards; /* 动画结束后保持最终状态 */
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
         }
 
         .countdown-content h1 {
@@ -212,7 +263,7 @@
             font-size: 3rem;
             color: #fff;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-            animation: pulse 1.5s infinite alternate; /* 脉冲动画 */
+            animation: pulse 1.5s infinite alternate;
         }
 
         .countdown-timer span {
@@ -220,7 +271,42 @@
             margin: 0 0.5rem;
         }
 
-        /* 返回首页按钮 */
+        /* 新闻内容样式 */
+        .news-content {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .news-content h1 {
+            font-size: 2.5rem;
+            color: #fff;
+            margin-bottom: 1.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .news-image-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            margin-bottom: 1.5rem;
+        }
+
+        .news-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
         .back-button {
             margin-top: 1.5rem;
             padding: 0.8rem 2rem;
@@ -239,29 +325,6 @@
             box-shadow: 0 6px 20px rgba(255, 111, 97, 0.6);
         }
 
-        /* 春节快乐提示 */
-        .new-year-message {
-            display: none;
-            font-size: 4rem;
-            color: #ffcc00;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-            animation: zoomIn 1s ease-in-out forwards;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-
-        /* 动画 */
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
-        }
-
         @keyframes pulse {
             from {
                 transform: scale(1);
@@ -270,22 +333,47 @@
                 transform: scale(1.1);
             }
         }
-
-        @keyframes zoomIn {
-            from {
-                opacity: 0;
-                transform: scale(0.5);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
     </style>
 </head>
 <body>
     <!-- 欢迎文字动画 -->
     <div class="welcome-text">欢迎来到韩班网</div>
+
+    <!-- 页眉 -->
+    <div class="header">
+        <h1>韩班网</h1>
+    </div>
+
+    <!-- 侧边栏 -->
+    <div class="sidebar">
+        <div class="countdown-module" id="countdown-module">
+            <h2>春节倒计时</h2>
+        </div>
+        <div class="news-module" id="news-module">
+            <h2>今日新闻</h2>
+        </div>
+    </div>
+
+    <!-- 正文部分 -->
+    <div class="main-content" id="main-content">
+        <div class="countdown-content" id="countdown-content">
+            <h1>春节倒计时</h1>
+            <div class="countdown-timer" id="countdown-timer">
+                <span id="days">00</span>天
+                <span id="hours">00</span>时
+                <span id="minutes">00</span>分
+                <span id="seconds">00</span>秒
+            </div>
+            <button class="back-button" onclick="backToHome()">返回首页</button>
+        </div>
+        <div class="news-content" id="news-content">
+            <h1>今日新闻</h1>
+            <div class="news-image-container">
+                <img class="news-image" id="news-image" alt="今日新闻图片" />
+            </div>
+            <button class="back-button" onclick="backToHome()">返回首页</button>
+        </div>
+    </div>
 
     <!-- 密码验证部分 -->
     <div class="password-container" id="password-container">
@@ -312,26 +400,6 @@
         <p>欢迎进入韩班网！</p>
     </div>
 
-    <!-- 春节倒计时模块 -->
-    <div class="countdown-module" id="countdown-module">
-        <h2>春节倒计时</h2>
-    </div>
-
-    <!-- 倒计时内容 -->
-    <div class="countdown-content" id="countdown-content">
-        <h1>春节倒计时</h1>
-        <div class="countdown-timer" id="countdown-timer">
-            <span id="days">00</span>天
-            <span id="hours">00</span>时
-            <span id="minutes">00</span>分
-            <span id="seconds">00</span>秒
-        </div>
-        <button class="back-button" onclick="backToHome()">返回首页</button>
-    </div>
-
-    <!-- 春节快乐提示 -->
-    <div class="new-year-message" id="new-year-message">春节快乐！</div>
-
     <script>
         // 允许的首字母列表
         const allowedInitials = [
@@ -343,7 +411,7 @@
 
         // 存储验证状态和日期
         function setVerificationStatus() {
-            const today = new Date().toLocaleDateString(); // 获取当前日期（格式为 YYYY/MM/DD）
+            const today = new Date().toLocaleDateString();
             localStorage.setItem('verified', 'true');
             localStorage.setItem('verificationDate', today);
         }
@@ -355,23 +423,28 @@
             const today = new Date().toLocaleDateString();
 
             if (verified === 'true' && verificationDate === today) {
-                // 如果当天已经验证过，跳过验证
-                document.getElementById('password-container').style.display = 'none';
-                document.getElementById('initial-container').style.display = 'none';
-                document.getElementById('countdown-module').style.display = 'block';
+                showHomeContent(); // 如果已验证，直接显示首页内容
             } else {
-                // 如果未验证或跨天了，清除状态并显示验证界面
                 localStorage.removeItem('verified');
                 localStorage.removeItem('verificationDate');
                 document.getElementById('password-container').style.display = 'block';
             }
         }
 
+        // 显示首页内容
+        function showHomeContent() {
+            document.querySelector('.header').style.display = 'flex';
+            document.querySelector('.sidebar').style.display = 'flex';
+            document.getElementById('password-container').style.display = 'none';
+            document.getElementById('initial-container').style.display = 'none';
+        }
+
         // 在页面加载时检查验证状态
         window.onload = function () {
             const welcomeText = document.querySelector('.welcome-text');
             welcomeText.addEventListener('animationend', () => {
-                checkVerificationStatus(); // 动画结束后检查验证状态
+                welcomeText.style.display = 'none'; // 动画结束后隐藏欢迎文字
+                checkVerificationStatus();
             });
         };
 
@@ -380,19 +453,19 @@
             const password = document.getElementById('password').value;
             const errorMessage = document.getElementById('password-error');
             const successMessage = document.getElementById('password-success');
-            const passwordContainer = document.getElementById('password-container'); // 确保获取到密码容器
+            const passwordContainer = document.getElementById('password-container');
 
             if (password === 'HAN12') {
-                successMessage.style.display = 'block'; // 显示密码正确的提示
+                successMessage.style.display = 'block';
                 setTimeout(() => {
-                    successMessage.style.display = 'none'; // 隐藏提示
-                    passwordContainer.style.display = 'none'; // 隐藏密码验证容器
-                    document.getElementById('initial-container').style.display = 'block'; // 显示首字母验证容器
-                }, 2000); // 2秒后执行
+                    successMessage.style.display = 'none';
+                    passwordContainer.style.display = 'none';
+                    document.getElementById('initial-container').style.display = 'block';
+                }, 2000);
             } else {
-                errorMessage.style.display = 'block'; // 显示密码错误的提示
+                errorMessage.style.display = 'block';
                 setTimeout(() => {
-                    errorMessage.style.display = 'none'; // 2秒后隐藏错误提示
+                    errorMessage.style.display = 'none';
                 }, 2000);
             }
         }
@@ -408,8 +481,8 @@
                 setTimeout(() => {
                     successMessage.style.display = 'none';
                     document.getElementById('initial-container').style.display = 'none';
-                    document.getElementById('countdown-module').style.display = 'block';
-                    setVerificationStatus(); // 存储验证状态和日期
+                    setVerificationStatus(); // 设置验证状态
+                    showHomeContent(); // 显示首页内容
                 }, 2000);
             } else {
                 errorMessage.style.display = 'block';
@@ -420,19 +493,24 @@
         }
 
         // 点击春节倒计时模块显示倒计时内容
-        const countdownModule = document.getElementById('countdown-module');
-        const countdownContent = document.getElementById('countdown-content');
-
-        countdownModule.addEventListener('click', () => {
-            countdownModule.style.display = 'none';
-            countdownContent.style.display = 'block';
+        document.getElementById('countdown-module').addEventListener('click', () => {
+            document.getElementById('main-content').style.display = 'block';
+            document.getElementById('countdown-content').style.display = 'block';
+            document.getElementById('news-content').style.display = 'none';
             startCountdown();
+        });
+
+        // 点击今日新闻模块显示新闻内容
+        document.getElementById('news-module').addEventListener('click', async () => {
+            document.getElementById('main-content').style.display = 'block';
+            document.getElementById('news-content').style.display = 'block';
+            document.getElementById('countdown-content').style.display = 'none';
+            await fetchNewsImage();
         });
 
         // 返回首页逻辑
         function backToHome() {
-            countdownContent.style.display = 'none';
-            countdownModule.style.display = 'block';
+            document.getElementById('main-content').style.display = 'none';
         }
 
         // 春节倒计时逻辑
@@ -442,7 +520,6 @@
             const hoursElement = document.getElementById('hours');
             const minutesElement = document.getElementById('minutes');
             const secondsElement = document.getElementById('seconds');
-            const newYearMessage = document.getElementById('new-year-message');
 
             function updateCountdown() {
                 const now = new Date();
@@ -450,10 +527,10 @@
 
                 if (timeDifference <= 0) {
                     clearInterval(countdownInterval);
-                    countdownContent.style.display = 'none';
-                    newYearMessage.style.display = 'block';
-                    document.body.style.backgroundColor = '#ff0000';
-                    document.body.style.backgroundImage = 'linear-gradient(to bottom, #ff0000, #ffcc00)';
+                    daysElement.textContent = '00';
+                    hoursElement.textContent = '00';
+                    minutesElement.textContent = '00';
+                    secondsElement.textContent = '00';
                     return;
                 }
 
@@ -470,6 +547,24 @@
 
             const countdownInterval = setInterval(updateCountdown, 1000);
             updateCountdown();
+        }
+
+        // 获取新闻图片
+        async function fetchNewsImage() {
+            try {
+                const apiUrl = 'https://api.southerly.top/api/60s?format=image';
+                const response = await fetch(apiUrl);
+                
+                if (!response.ok) {
+                    throw new Error('网络响应异常');
+                }
+
+                const imageUrl = await response.url; // 获取图片URL
+                document.getElementById('news-image').src = imageUrl; // 设置图片源
+            } catch (error) {
+                console.error('获取新闻图片失败:', error);
+                document.getElementById('news-image').alt = '无法加载新闻图片，请稍后重试。';
+            }
         }
     </script>
 </body>
