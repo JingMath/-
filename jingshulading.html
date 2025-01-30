@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>回溯算法斜边拉丁方搜索</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f8ff;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .control-panel {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .history-panel {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        table {
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+        td {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #ddd;
+            text-align: center;
+            font-size: 0.8em;
+        }
+        .diagonal {
+            background-color: #e8f4ff;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #eee;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+        .progress {
+            height: 100%;
+            background-color: #4CAF50;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+        button {
+            padding: 8px 15px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #startSearch {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .history-item {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="control-panel">
+            <h2>回溯算法搜索系统</h2>
+            <div>
+                <label>n值设置: </label>
+                <input type="number" id="nValue" min="1" value="4">
+                <button id="startSearch">开始搜索</button>
+                <button id="pauseResumeButton" onclick="togglePause()">暂停</button>
+                <button onclick="exportSolutions()">导出结果</button>
+            </div>
+            <div class="progress-bar">
+                <div class="progress" id="searchProgress" style="width: 0%"></div>
+            </div>
+            <div id="searchStats">
+                已探索状态: <span id="statesExplored">0</span><br>
+                找到解数量: <span id="solutionsFound">0</span>
+            </div>
+            <div id="currentSolution"></div>
+        </div>
+
+        <div class="history-panel">
+            <h3>有效解列表</h3>
+            <div id="solutionList"></div>
+        </div>
+    </div>
+
+    <script>
+        let isSearching = false;
+        let solutions = new Set();
+        let worker;
+        let solutionListData = [];
+
+        document.getElementById('startSearch').addEventListener('click', () => {
+            const n = parseInt(document.getElementById('nValue').value);
+            startSearch(n);
+        });
+
+        function startSearch(n, isResume = false) {
+            if (isSearching) return;
+            isSearching = true;
+            if (!isResume) {
+                solutions.clear();
+                solutionListData = [];
+                document.getElementById('solutionList').innerHTML = '';
+                updateUI();
+            }
+            
+            worker = new Worker(URL.createObjectURL(new Blob([`
+                ${searchAlgorithm.toString()}
+                searchAlgorithm();
+            `], { type: 'text/javascript' })));
+
+            worker.onmessage = function(e) {
+                const { type, data } = e.data;
+                switch(type) {
+                    case 'progress':
+                        updateProgress(data);
+                        break;
+                    case 'solution':
+                        addSolution(data);
+                        break;
+                    case 'complete':
+                        isSearching = false;
+                        document.getElementById('pauseResumeButton').textContent = '暂停';
+                        if (solutionListData.length === 0) {
+                            const noSolutionItem = document.createElement('div');
+                            noSolutionItem.className = 'history-item';
+                            noSolutionItem.textContent = '没有符合要求的方阵';
+                            document.getElementById('solutionList').prepend(noSolutionItem);
+                        }
+                        break;
+                }
+            };
+
+            worker.postMessage({ n });
+            document.getElementById('pauseResumeButton').textContent = '暂停';
+        }
+
+        function togglePause() {
+            if (isSearching) {
+                worker.terminate();
+                isSearching = false;
+                document.getElementById('pauseResumeButton').textContent = '继续';
+            } else {
+                const n = parseInt(document.getElementById('nValue').value);
+                startSearch(n, true);
+            }
+        }
+
+        function searchAlgorithm() {
+            self.onmessage = function(e) {
+                const n = e.data.n;
+                const totalDiagonals = 2 * n - 1;
+                let statesExplored = 0;
+                let solutions = new Set();
+
+                function backtrack(row, col, board, rowMask, colMask, diag1Mask, diag2Mask) {
+                    if (row === n) {
+                        const solution = board.map(r => [...r]);
+                        self.postMessage({ type: 'solution', data: solution });
+                        return 1;
+                    }
+
+                    let solutionsFound = 0;
+                    const nextRow = col === n-1 ? row + 1 : row;
+                    const nextCol = col === n-1 ? 0 : col + 1;
+
+                    for (let num = 1; num <= n; num++) {
+                        const bit = 1 << num;
+                        const d1 = row - col + n - 1;
+                        const d2 = row + col;
+
+                        if ((rowMask[row] & bit) || 
+                            (colMask[col] & bit) ||
+                            (diag1Mask[d1] & bit) || 
+                            (diag2Mask[d2] & bit)) continue;
+
+                        board[row][col] = num;
+                        rowMask[row] |= bit;
+                        colMask[col] |= bit;
+                        diag1Mask[d1] |= bit;
+                        diag2Mask[d2] |= bit;
+
+                        solutionsFound += backtrack(nextRow, nextCol, 
+                            board, rowMask, colMask, diag1Mask, diag2Mask);
+
+                        rowMask[row] ^= bit;
+                        colMask[col] ^= bit;
+                        diag1Mask[d1] ^= bit;
+                        diag2Mask[d2] ^= bit;
+                    }
+
+                    statesExplored++;
+                    if (statesExplored % 1000 === 0) {
+                        self.postMessage({ 
+                            type: 'progress',
+                            data: { statesExplored }
+                        });
+                    }
+                    return solutionsFound;
+                }
+
+                const initialBoard = Array.from({length: n}, () => Array(n).fill(0));
+                backtrack(0, 0, 
+                    initialBoard.map(r => [...r]), 
+                    new Uint32Array(n),
+                    new Uint32Array(n),
+                    new Uint32Array(2*n-1),
+                    new Uint32Array(2*n-1)
+                );
+
+                self.postMessage({ type: 'complete' });
+            };
+        }
+
+        function addSolution(solution) {
+            const key = solution.map(row => row.join('')).join('');
+            if (!solutions.has(key)) {
+                solutions.add(key);
+                solutionListData.push(solution);
+                appendSolutionToHistory(solution);
+                updateUI();
+            }
+        }
+
+        function exportSolutions() {
+            if (solutionListData.length === 0) {
+                alert("没有可导出的解决方案！");
+                return;
+            }
+            
+            const n = solutionListData[0].length;
+            let content = `斜边拉丁方解决方案汇总 (n=${n})\n\n`;
+            content += `共找到 ${solutionListData.length} 个有效解\n\n`;
+            
+            solutionListData.forEach((solution, index) => {
+                content += `解决方案 #${index + 1}:\n`;
+                content += solution.map(row => 
+                    row.map(num => num.toString().padStart(2, ' ')).join(' ')
+                ).join('\n');
+                content += '\n\n';
+            });
+
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `斜边拉丁方解_n${n}_${new Date().toISOString().slice(0,10)}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function updateProgress(data) {
+            document.getElementById('statesExplored').textContent = data.statesExplored;
+            const progress = Math.min(100, data.statesExplored / 1000000 * 100);
+            document.getElementById('searchProgress').style.width = `${progress}%`;
+        }
+
+        function appendSolutionToHistory(matrix) {
+            const solutionList = document.getElementById('solutionList');
+            const solutionItem = document.createElement('div');
+            solutionItem.className = 'history-item';
+            const solutionNumber = solutionListData.length;
+            solutionItem.innerHTML = `
+                <div>解决方案 #${solutionNumber} (n=${matrix.length}) 找到时间: ${new Date().toLocaleTimeString()}</div>
+                ${matrixToHTML(matrix)}
+            `;
+            solutionList.prepend(solutionItem);
+        }
+
+        function matrixToHTML(matrix) {
+            const n = matrix.length;
+            let html = `<table>`;
+            matrix.forEach((row, i) => {
+                html += '<tr>';
+                row.forEach((num, j) => {
+                    let cls = (i === j || j === n-1-i) ? 'diagonal' : '';
+                    html += `<td class="${cls}">${num}</td>`;
+                });
+                html += '</tr>';
+            });
+            html += '</table>';
+            return html;
+        }
+
+        function updateUI() {
+            document.getElementById('solutionsFound').textContent = solutions.size;
+        }
+    </script>
+</body>
+</html>
